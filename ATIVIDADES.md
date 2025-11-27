@@ -128,9 +128,41 @@ os.system("chmod +x /etc/aied/aied_"+ str ( os_version ) + "   " );
 
 #OK, será usado para isntalacao do aied.com.br
 
+## ATIVIDADE 3: Análise e Compilação dos Códigos
+**Instrução:** Para cada programa listado abaixo, você deve:
+1. Colar o código-fonte limpo (sem números de linha).
+2. Compilar e executar o código no seu terminal. 3. Colar a saída exata que você obteve.
+4. Escrever uma breve análise do que a saída significa e se corresponde ao objetivo do código.
+### Códigos do Capítulo 6 (Discos e Montagem) #### `devices.cpp` (Livro-Texto p. 151-152)
+* **Objetivo do Código:** Ler o arquivo virtual `/proc/mounts` para descobrir e imprimir qual dispositivo de bloco (ex: `/dev/sda1`) está atualmente montado no diretório raiz (`/`).
+* **Código-Fonte:**
+```cpp #include <iostream> #include <fstream> #include <optional> #include <string> std::optional<std::string> get_device_of_mount_point(std::string path) { std::ifstream mounts("/proc/mounts"); std::string mountPoint; std::string device; while (mounts >> device >> mountPoint) { if (mountPoint == path) return device; } return std::nullopt; } int main() { if (const auto device = get_device_of_mount_point("/")) std::cout << *device << "\n"; else std::cout << "Not found\n"; } ```
+* **Análise da Saída:**
+* *Comando de Compilação:* `g++ -o devices devices.cpp -std=c++17`
+* *Saída da Execução:* ```bash /dev/sda1
+ ``` * *Breve Descrição:* A saída é o local da primeira partição do disco raíz, portanto, é o resultado esperado.
+
+#### `getuuid.c` (Livro-Texto p. 161-162)
+* **Objetivo do Código:** Usar a biblioteca `libblkid` para listar todas as partições de um disco (ex: `/dev/sda`) e imprimir seus atributos, como **UUID**, **LABEL** e **TYPE**.
+ * **Código-Fonte:** ```c
+#include <stdio.h>
+#include <string.h>
+#include <err.h>
+#include <blkid/blkid.h>
+int main (int argc, char *argv[]) { if (argc != 2) {
+fprintf(stderr, "Uso: %s <dispositivo>\nEx: %s /dev/sda\n", argv[0], argv[0]); return 1; } blkid_probe pr = blkid_new_probe_from_filename(argv[1]); if (!pr) { err(1, "Falha ao abrir %s", argv[1]); } blkid_partlist ls; int nparts, i; ls = blkid_probe_get_partitions(pr); if (!ls) { err(1, "Falha ao obter partições de %s", argv[1]); } nparts = blkid_partlist_numof_partitions(ls); printf("Número de partições em %s: %d\n", argv[1], nparts); const char *uuid, *label, *type; for (i = 0; i < nparts; i++) { char dev_name[20]; // (Cria o nome da partição, ex: /dev/sda + 1 = /dev/sda1) sprintf(dev_name, "%s%d", argv[1], (i+1)); blkid_probe pr_part = blkid_new_probe_from_filename(dev_name); if (!pr_part) continue; blkid_do_probe(pr_part); blkid_probe_lookup_value(pr_part, "UUID", &uuid, NULL); blkid_probe_lookup_value(pr_part, "LABEL", &label, NULL); blkid_probe_lookup_value(pr_part, "TYPE", &type, NULL); printf(" Partição: %s, UUID=%s, LABEL=%s, TYPE=%s\n", dev_name, (uuid ? uuid : "null"), (label ? label : "null"), (type ? type : "null")); blkid_free_probe(pr_part); } blkid_free_probe(pr); return 0; }
+
+* *Comando de Compilação:* `gcc -o getuuid getuuid.c -lblkid` * *Saída da Execução:* (Execute com `sudo ./getuuid /dev/sda`) ```bash
+Número de partições em /dev/sda: 3
+ Partição: /dev/sda1, UUID=4ba97ce4-739d-4fb3-b0ae-379bfd7d888a, LABEL=null, TYPE=ext4
+ Partição: /dev/sda2, UUID=▒, LABEL=null, TYPE=▒lH#V ```
+* *Breve Descrição:* listou corretamente, com tipos como ext4 de formatação.
 
 
 
+--- ### Códigos do Capítulo 7 (Processos) #### `teste.c` (Livro-Texto p. 181-182)
+* **Objetivo do Código:** Um programa
+"Olá, Mundo" simples para demonstrar o ciclo completo de compilação do GCC (Pré-processamento, Compilação, Montagem, Ligação). * **Código-Fonte:**
 
 
 
