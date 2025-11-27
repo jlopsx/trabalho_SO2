@@ -1,3 +1,6 @@
+# Projeto Final - Capítulos 6, 7 e 9 ## RELATÓRIO DE PRÁTICAS E CÓDIGOS **Nome do Aluno:** João Vitor Lopes Silva **Turno:** ADS- NOITE **Data do Último Commit:** [Data de Hoje] ---
+
+
 ## ATIVIDADE 1: Relatório das Práticas de Aula Esta seção documenta a execução das práticas de administração de sistemas realizadas em sala, conforme solicitado no final de cada capítulo do livro-texto. 
 **Instrução:** Para cada prática, forneça um breve resumo do que foi feito e cole a saída de texto dos comandos de validação solicitados. 
 **Não use imagens (printscreens)**. 
@@ -163,6 +166,76 @@ Número de partições em /dev/sda: 3
 --- ### Códigos do Capítulo 7 (Processos) #### `teste.c` (Livro-Texto p. 181-182)
 * **Objetivo do Código:** Um programa
 "Olá, Mundo" simples para demonstrar o ciclo completo de compilação do GCC (Pré-processamento, Compilação, Montagem, Ligação). * **Código-Fonte:**
+
+```c #include <stdio.h> int main() { printf("Aied é 10, Aied é TOP, tá no Youtube\n"); return 0; } ```
+ * **Análise da Saída:** * *Comando de Compilação:* `gcc -o teste teste.c`
+ * *Saída da Execução:* ```bash Aied é 10, Aied é TOP, tá no Youtube ``` * *Breve Descrição:* O programa imrpime a String passada como parametro no método printf().
+
+#### `myblkid.cpp` (Livro-Texto p. 186-187)
+* **Objetivo do Código:** Demonstrar como um programa C++ pode usar a biblioteca
+`libblkid` (uma biblioteca C) para obter o UUID de uma partição específica (neste caso, `/dev/sda1`).
+**Código-Fonte:** ```cpp #include <iostream> #include <blkid/blkid.h> #include <err.h> #include <string> int main (int argc, char *argv[]) { blkid_probe pr; const char *uuid;
+std::string partition = "/dev/sda1"; // Codificado no fonte pr = blkid_new_probe_from_filename(partition.c_str()); if (!pr) { err(2, "Falha ao abrir %s", partition.c_str()); } blkid_do_probe(pr); blkid_probe_lookup_value(pr, "UUID", &uuid, NULL); printf("UUID=%s\n", (uuid ? uuid : "null")); blkid_free_probe(pr); return 0; } ```
+* **Análise da Saída:** * *Comando de Compilação:*
+`g++ -o myblkid myblkid.cpp -lblkid` * *Saída da Execução:* ```bash UUID=4ba97ce4-739d-4fb3-b0ae-379bfd7d888a
+ ``` * *Breve Descrição:* Sim, é correspondente.
+
+#### `calcfb.cpp` (Livro-Texto p. 187) *(Esta prática requer dois arquivos)* * **Objetivo do Código:** Demonstrar como criar e usar uma biblioteca de cabeçalho (`.h`) local. O `calcfb.cpp` (programa principal) incluirá `fibonacci.h` (biblioteca) para calcular um número da sequência. * **Código-Fonte (`fibonacci.h`):** ```cpp // (p. 187) int fibonacci(int n) { if (n <= 1) return n; return fibonacci(n - 1) + fibonacci(n - 2); } ``` * **Código-Fonte (`calcfb.cpp`):** ```cpp // (p. 187) #include <stdio.h> #include "fibonacci.h" // Aspas "" para incluir um arquivo local int main(int argc, char* argv[]) { printf("F%d: %d \n", 4, fibonacci(4)); return 0;
+} ``` * **Análise da Saída:** * *Comando de Compilação:* `g++ -o calcfb calcfb.cpp` * *Saída da Execução:* ```bash F4: 3
+ ``` * *Breve Descrição:* O quarto indicie da série de fibonacci resulta em 3, a soma de seus dois antecessores, 1 e 2.
+
+#### `thread.cpp` (Livro-Texto p. 190)
+* **Objetivo do Código:**
+Demonstrar a criação de múltiplas threads que executam concorrentemente com a thread principal (`main`).
+* **Código-Fonte:** ```cpp // (p. 190)
+#include <iostream>
+#include <thread>
+#include <string>
+using namespace std; // (Função de exemplo baseada no livro)
+void task1(string msg) {
+cout << "A thread está falando: " << msg << endl; }
+int main() {
+thread t1(task1, "Olá");
+cout << "A 'main' executou..." << endl;
+t1.join(); // A main espera a thread t1 terminar
+return 0; } ``` * **Análise da Saída:** * *Comando de Compilação:* `g++ thread.cpp -o thread -pthread -std=c++11` * *Saída da Execução:* ```bash A 'main' executou...
+A thread está falando: Olá
+ ``` * *Breve Descrição:* "A 'main' executou" dispara primeiro, pois o main é chamada primeiro, e não é possívle ter controle total sobre as prioridades de execução das threads. O método join() faz com que exista um período de espera enquanto uma thread é executada.
+
+#### `usefork.cpp` (Livro-Texto p. 191)
+* **Objetivo do Código:
+** Demonstrar a chamada `fork()`. O programa se clona; o pai e o filho executam o *mesmo* código, mas alteram variáveis diferentes, provando que têm espaços de memória separados.
+* **Código-Fonte:** ```cpp // (p. 191)
+#include <iostream>
+#include <string>
+#include <unistd.h> // Para fork()
+#include <stdlib.h> // Para exit()
+using namespace std;
+int variavelGlobal = 2; // (p. 191, linha 5)
+int main() {
+    string identidade;
+    int variavelFuncao = 20; // (p. 191, linha 9)
+    pid_t pID = fork(); // (p. 191, linha 11)
+    if (pID == 0) { // Processo filho
+           identidade = "Processo filho: ";
+           variavelGlobal++;
+           variavelFuncao++; }
+    else if (pID < 0) { // Erro
+           cerr << "Failed to fork" << endl;
+           exit(1); }
+    else { // Processo pai
+           identidade = "Processo pai:"; } // Este código é executado por AMBOS
+cout << identidade;
+cout << " Variavel Global: " << variavelGlobal;
+cout << " Variável Funcao: " << variavelFuncao << endl;
+return 0;
+} 
+
+* **Análise da Saída:** * *Comando de Compilação:* `g++ -o usefork usefork.cpp` * *Saída da Execução:* ```bash Processo pai: Variavel Global: 2 Variável Funcao: 20
+userlinux@debian:~$ Processo filho:  Variavel Global: 3 Variável Funcao: 21
+ ``` * *Breve Descrição:* Tem valores diferentes pois as instruções para cada processo são distintos, de aoordo com seu PID. O primeiro processo a ser disparado foi o processo pai.
+
+
 
 
 
