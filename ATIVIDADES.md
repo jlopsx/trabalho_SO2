@@ -235,9 +235,316 @@ return 0;
 userlinux@debian:~$ Processo filho:  Variavel Global: 3 Variável Funcao: 21
  ``` * *Breve Descrição:* Tem valores diferentes pois as instruções para cada processo são distintos, de aoordo com seu PID. O primeiro processo a ser disparado foi o processo pai.
 
+#### `usewait.cpp` (Livro-Texto p. 193) *
+**Objetivo do Código:**
+Demonstrar a chamada `wait()`.
+O processo-pai usa `wait(NULL)` para pausar sua própria execution e aguardar que o processo-filho termine antes de continuar.
+* **Código-Fonte:**
+```cpp //
+(p. 193)
+#include <iostream>
+#include <unistd.h>
+#include <sys/wait.h> // (p. 193, linha 3)
+using namespace std;
+int main() {
+    pid_t pID = fork();
+    pid_t cpid;
+    if ( pID == 0 ) { // Filho
+      cout << "Saindo do processo filho. " << endl;
+      return 0; }
+    else if (pID > 0) { // Pai
+      cout << "Pai esperando o filho terminar..." << endl;
+      cpid = wait(NULL); // (p. 193, linha 17) }
+      else { // Erro cerr << "Failed to fork" << endl;
+      return 1; }
+    cout << "PID do pai: " << getpid() << endl;
+    cout << "PID do filho (retornado por wait): " << cpid << endl;
+    return 0; }
+* **Análise da Saída:**
+* *Comando de Compilação:* `g++ -o usewait usewait.cpp` * *Saída da Execução:* ```bash Pai esperando o filho terminar...
+Saindo do processo filho.
+PID do pai: 854
+PID do filho (retornado por wait): 855
+ ``` * *Breve Descrição:* É impresso pois o processo filho é finalizado antes do que o processo pai.
 
+#### `usewait_exit.cpp` (Livro-Texto p. 194)
+* **Objetivo do Código:**
+Expandir o `wait()`, mostrando como o pai pode capturar o *código de saída* (status) do filho, usando `WIFEXITED` e `WEXITSTATUS`.
+* **Código-Fonte:** ```c // (p. 194) (Este código é C, não C++)
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <signal.h> // Para psignal
+int main() {
+      pid_t pid;
+      int stat; // (p. 194, linha 11)
+      pid = fork();
+      if(pid == 0) { // Filho
+          printf("Saindo do processo filho.\n");
+          exit(1); // (p. 194, linha 15)
+      } else if (pid > 0) { // Pai
+          wait(&stat); // (p. 194, linha 17 - modificado do NULL)
+      if(WIFEXITED(stat)) { // (p. 194, linha 20)
+          printf("WEXIT: %d\n", WEXITSTATUS(stat)); // (p. 194, linha 21)
+      } else if (WIFSIGNALED(stat))
+      { psignal(WTERMSIG(stat), "Sinal de saída: ");
+      }
+      printf("PID do pai: %d\n", getpid());
+      printf("PID do filho: %d\n", pid); }
+      return 0;
+}
+* **Análise da Saída:** * *Comando de Compilação:* `gcc -o usewait_exit usewait_exit.cpp` * *Saída da Execução:* ```bash Saindo do processo filho.
+WEXIT: 1
+PID do pai: 864
+PID do filho: 865
+ ``` * *Breve Descrição:* 1, significando que saiu com exit do processo filho.
+#### `waitpid.cpp` (Livro-Texto p. 195)
+* **Objetivo do Código:**
+Demonstrar o `waitpid()` para gerenciar *múltiplos* filhos.
+O pai cria 5 filhos, e então espera por *cada um* deles especificamente, coletando seus códigos de saída (100 a 104).
+* **Código-Fonte:** ```cpp // (p. 195)
+#include <iostream>
+#include <sys/wait.h>
+#include <unistd.h>
+using namespace std;
+int main() {
+    pid_t pid[5];
+    int i, stat;
+    for (i = 0; i < 5; i++) {
+        pid[i] = fork(); // (p. 195, linha 11)
+        if( pid[i] == 0) { // Filho
+              sleep(1); // (p. 195, linha 14)
+              exit(100 + i); // (p. 195, linha 15) }
+    }
+    for (i = 0; i < 5; i++) {
+        pid_t cpid = waitpid(pid[i], &stat, 0); // (p. 195, linha 19)
+        if (WIFEXITED(stat)) {
+              cout << "O filho " << cpid << " terminou com o status: " << WEXITSTATUS(stat) << endl;
+        }
+    }
+return 0;
+}
+* **Análise da Saída:**
+* *Comando de Compilação:* `g++ -o waitpid waitpid.cpp` * *Saída da Execução:* ```bash O filho 877 terminou com o status: 100
+O filho 878 terminou com o status: 101
+O filho 879 terminou com o status: 102
+O filho 880 terminou com o status: 103
+O filho 881 terminou com o status: 104
+``` * *Breve Descrição:* Sim, estão em ordem. Ele aguarda a conclusão do atual processo para o inicio do outro, resultando em uma ordem de fato.
 
+#### `system.cpp` (Livro-Texto p. 196)
+* **Objetivo do Código:** Demonstrar a função `system()`, que é um atalho (e geralmente inseguro) para `fork + exec + wait`. O programa C++ pausa, executa um comando de shell (`ls -l`) e depois continua. * **Código-Fonte:** ```cpp // (p. 196)
+#include <iostream>
+#include <stdlib.h> // Para system()
+int main() {
+system("ls -l");
+std::cout << "Executado" << std::endl;
+return 0;
+} ``` * **Análise da Saída:** * *Comando de Compilação:* `g++ -o system system.cpp` * *Saída da Execução:* ```bash total 312
+-rwxr-xr-x 1 userlinux userlinux 16000 Nov 27 12:11 calcfb
+-rw-r--r-- 1 userlinux userlinux   182 Nov 27 12:10 calcfb.cpp
+drwxr-xr-x 2 userlinux userlinux  4096 Nov 26 23:20 cdrom
+-rwxr-xr-x 1 userlinux userlinux 30840 Nov 27 11:40 devices
+-rw-r--r-- 1 userlinux userlinux   541 Nov 27 11:37 devices.cpp
+-rw-r--r-- 1 userlinux userlinux    94 Nov 27 12:09 fibonacci.h
+-rwxr-xr-x 1 userlinux userlinux 16528 Nov 27 11:47 getuuid
+-rw-r--r-- 1 userlinux userlinux  1463 Nov 27 11:47 getuuid.c
+-rwxr-xr-x 1 userlinux userlinux 24168 Nov 27 12:05 myblkid
+-rw-r--r-- 1 userlinux userlinux   534 Nov 27 12:04 myblkid.cpp
+-rwxr-xr-x 1 userlinux userlinux 16624 Nov 27 14:34 pop
+-rw-r--r-- 1 userlinux userlinux   437 Nov 27 14:34 pop.cpp
+-rwxr-xr-x 1 userlinux userlinux 16600 Nov 27 14:35 system
+-rw-r--r-- 1 userlinux userlinux   138 Nov 27 14:23 system.cpp
+-rwxr-xr-x 1 userlinux userlinux 15960 Nov 27 11:58 teste
+-rw-r--r-- 1 userlinux userlinux   112 Nov 27 11:58 teste.c
+-rwxr-xr-x 1 userlinux userlinux 26288 Nov 27 12:22 thread
+-rw-r--r-- 1 userlinux userlinux   338 Nov 27 12:21 thread.cpp
+-rw-r--r-- 1 userlinux userlinux   960 Nov 26 23:45 typescript
+-rwxr-xr-x 1 userlinux userlinux 17496 Nov 27 12:31 usefork
+-rw-r--r-- 1 userlinux userlinux   810 Nov 27 12:31 usefork.cpp
+-rwxr-xr-x 1 userlinux userlinux 16800 Nov 27 13:49 usewait
+-rw-r--r-- 1 userlinux userlinux   622 Nov 27 13:49 usewait.cpp
+-rwxr-xr-x 1 userlinux userlinux 16272 Nov 27 13:54 usewait_exit
+-rw-r--r-- 1 userlinux userlinux   754 Nov 27 13:54 usewait_exit.cpp
+-rwxr-xr-x 1 userlinux userlinux 16792 Nov 27 13:59 waitpid
+-rw-r--r-- 1 userlinux userlinux   611 Nov 27 13:59 waitpid.cpp
+Executado
+ ``` * *Breve Descrição:* Apareceram as permissões de modificação do usuário, antes do executando. Pois sua chamada ocorre antes.
 
+#### `pop.cpp` (Livro-Texto p. 197)
+* **Objetivo do Código:**
+Demonstrar a função `popen()` (pipe open).
+Similar ao `system()`, ele executa um comando, mas permite ao programa C++ *capturar* a saída do comando (`ls -l`) e processá-la linha por linha.
+* **Código-Fonte:** ```cpp // (p. 197)
+#include <iostream>
+#include <stdio.h> // Para popen, pclose, FILE
+#include <stdlib.h> // Para exit
+int main() {
+FILE *fpipe;
+char *command = (char *)"ls -l";
+char line[256];
+if ( !(fpipe = (FILE*)popen(command,"r")) ) { // (p. 197, linha 9)
+perror("Falha ao abrir um pipe");
+exit(1); }
+while ( fgets( line, sizeof line, fpipe))
+{ // (p. 197, linha 13)
+std::cout << "Linha: " << line; // line já contém \n
+}
+pclose(fpipe);
+return 0; } ``` * **Análise da Saída:** * *Comando de Compilação:* `g++ -o pop pop.cpp` * *Saída da Execução:* ```bash Linha: total 312
+Linha: -rwxr-xr-x 1 userlinux userlinux 16000 Nov 27 12:11 calcfb
+Linha: -rw-r--r-- 1 userlinux userlinux   182 Nov 27 12:10 calcfb.cpp
+Linha: drwxr-xr-x 2 userlinux userlinux  4096 Nov 26 23:20 cdrom
+Linha: -rwxr-xr-x 1 userlinux userlinux 30840 Nov 27 11:40 devices
+Linha: -rw-r--r-- 1 userlinux userlinux   541 Nov 27 11:37 devices.cpp
+Linha: -rw-r--r-- 1 userlinux userlinux    94 Nov 27 12:09 fibonacci.h
+Linha: -rwxr-xr-x 1 userlinux userlinux 16528 Nov 27 11:47 getuuid
+Linha: -rw-r--r-- 1 userlinux userlinux  1463 Nov 27 11:47 getuuid.c
+Linha: -rwxr-xr-x 1 userlinux userlinux 24168 Nov 27 12:05 myblkid
+Linha: -rw-r--r-- 1 userlinux userlinux   534 Nov 27 12:04 myblkid.cpp
+Linha: -rwxr-xr-x 1 userlinux userlinux 16624 Nov 27 14:34 pop
+Linha: -rw-r--r-- 1 userlinux userlinux   437 Nov 27 14:34 pop.cpp
+Linha: -rwxr-xr-x 1 userlinux userlinux 16600 Nov 27 14:24 system
+Linha: -rw-r--r-- 1 userlinux userlinux   138 Nov 27 14:23 system.cpp
+Linha: -rwxr-xr-x 1 userlinux userlinux 15960 Nov 27 11:58 teste
+Linha: -rw-r--r-- 1 userlinux userlinux   112 Nov 27 11:58 teste.c
+Linha: -rwxr-xr-x 1 userlinux userlinux 26288 Nov 27 12:22 thread
+Linha: -rw-r--r-- 1 userlinux userlinux   338 Nov 27 12:21 thread.cpp
+Linha: -rw-r--r-- 1 userlinux userlinux   960 Nov 26 23:45 typescript
+Linha: -rwxr-xr-x 1 userlinux userlinux 17496 Nov 27 12:31 usefork
+Linha: -rw-r--r-- 1 userlinux userlinux   810 Nov 27 12:31 usefork.cpp
+Linha: -rwxr-xr-x 1 userlinux userlinux 16800 Nov 27 13:49 usewait
+Linha: -rw-r--r-- 1 userlinux userlinux   622 Nov 27 13:49 usewait.cpp
+Linha: -rwxr-xr-x 1 userlinux userlinux 16272 Nov 27 13:54 usewait_exit
+Linha: -rw-r--r-- 1 userlinux userlinux   754 Nov 27 13:54 usewait_exit.cpp
+Linha: -rwxr-xr-x 1 userlinux userlinux 16792 Nov 27 13:59 waitpid
+Linha: -rw-r--r-- 1 userlinux userlinux   611 Nov 27 13:59 waitpid.cpp
+ ``` * *Breve Descrição:* O popen utiliza do nome do arquivo para executa-lo diretamente em um pipeline.
+#### `receivesignal.cpp` (Livro-Texto p. 203)
+* **Objetivo do Código:**
+Demonstrar como um processo pode "capturar" (handle) um sinal.
+Este programa entra em loop infinito, mas se o usuário pressionar `Ctrl+C` (que envia o sinal `SIGINT`), o programa executa a função `signal_handler` em vez de fechar imediatamente.
+* **Código-Fonte:** ```cpp // (p. 203)
+#include <iostream>
+#include <csignal>
+#include <unistd.h>
+using namespace std;
+void signal_handler (int signum) { // (p. 203, linha 6)
+cout << "Processo será interrompido pelo sinal: (" << signum << ")." << endl;
+exit(signum); }
+int main () {
+signal(SIGINT, signal_handler); // (p. 203, linha 12)
+while(1) { cout << "Dentro do laço de repetição infinito." << endl;
+sleep(1); } return 0; } ``` * **Análise da Saída:** * *Comando de Compilação:* `g++ -o receivesignal receivesignal.cpp` * *Saída da Execução:* (Deixe o programa rodar por 3 segundos e então pressione `Ctrl+C`) ```bash Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+^CProcesso será interrompido pelo sinal: (2).
+ ``` * *Breve Descrição:* O programa fechou exibindo o sinal do método, com código 2.
+
+#### `ignoresignal.cpp` (Livro-Texto p. 204)
+* **Objetivo do Código:**
+Demonstrar como um processo pode *ignorar* ativamente um sinal.
+Este programa é similar ao anterior, mas usa `SIG_IGN` para se tornar imune ao `Ctrl+C` (SIGINT).
+* **Código-Fonte:** ```cpp // (p. 204)
+#include <iostream>
+#include <csignal>
+#include <unistd.h>
+using namespace std;
+int main () { signal(SIGINT, SIG_IGN);
+// (p. 204, linha 8)
+int i = 0;
+while(1) {
+cout << "Estou em loop imune... (" << ++i << ")" << endl;
+sleep(1);
+} return 0; } ``` * **Análise da Saída:** * *Comando de Compilação:* `g++ -o ignoresignal ignoresignal.cpp` * *Saída da Execução:* (Pressione `Ctrl+C` várias vezes. Para parar, use `Ctrl+\` (SIGQUIT) ou `kill -9` de outro terminal).
+```bash Estou em loop imune... (1)
+Estou em loop imune... (2)
+Estou em loop imune... (3)
+Estou em loop imune... (4)
+Estou em loop imune... (5)
+Estou em loop imune... (6)
+Estou em loop imune... (7)
+Estou em loop imune... (8)
+Estou em loop imune... (9)
+Estou em loop imune... (10)
+Estou em loop imune... (11)
+Estou em loop imune... (12)
+Estou em loop imune... (13)
+Estou em loop imune... (14)
+Estou em loop imune... (15)
+Estou em loop imune... (16)
+Estou em loop imune... (17)
+Estou em loop imune... (18)
+Estou em loop imune... (19)
+Estou em loop imune... (20)
+Estou em loop imune... (21)
+Estou em loop imune... (22)
+Estou em loop imune... (23)
+Estou em loop imune... (24)
+Estou em loop imune... (25)
+Estou em loop imune... (26)
+Estou em loop imune... (27)
+Estou em loop imune... (28)
+Estou em loop imune... (29)
+Estou em loop imune... (30)
+Estou em loop imune... (31)
+Estou em loop imune... (32)
+Estou em loop imune... (33)
+Estou em loop imune... (34)
+Estou em loop imune... (35)
+^CEstou em loop imune... (36)
+^C^C^CEstou em loop imune... (37)
+^C^C^CEstou em loop imune... (38)
+^C^C^CEstou em loop imune... (39)
+Estou em loop imune... (40)
+Estou em loop imune... (41)
+Estou em loop imune... (42)
+Estou em loop imune... (43)
+Estou em loop imune... (44)
+Estou em loop imune... (45)
+Estou em loop imune... (46)
+Estou em loop imune... (47)
+Estou em loop imune... (48)
+Estou em loop imune... (49)
+Estou em loop imune... (50)
+Estou em loop imune... (51)
+Estou em loop imune... (52)
+Estou em loop imune... (53)
+Estou em loop imune... (54)
+Estou em loop imune... (55)
+Estou em loop imune... (56)
+Estou em loop imune... (57)
+Estou em loop imune... (58)
+Estou em loop imune... (59)
+Estou em loop imune... (60)
+Estou em loop imune... (61)
+Estou em loop imune... (62)
+Estou em loop imune... (63)
+Estou em loop imune... (64)
+Estou em loop imune... (65)
+Estou em loop imune... (66)
+^\Quit
+ ``` * *Breve Descrição:* O programa ignora o sinal de parada, somente matando o processo com o comando Ctrl+\
+
+#### `raisesignal.cpp` (Livro-Texto p. 204-205) * **Objetivo do Código:** Demonstrar como um processo pode enviar um sinal *para si mesmo* usando a função `raise()`. O programa irá rodar por 5 segundos e então se autoenviar um SIGINT. * **Código-Fonte:** ```cpp // (p. 204-205) #include <iostream> #include <csignal> #include <unistd.h> using namespace std; void signal_handler(int signum) { cout << "Auto-sinal recebido: (" << signum << ")." << endl; exit(signum); } int main () { int i = 0; signal(SIGINT, signal_handler); // (p. 205, linha 14) while (++i) { cout << "Dentro do laço de repetição infinito." << endl; if( i == 5) { raise(SIGINT); // (p. 205, linha 19) } sleep(1); } return 0; } ``` * **Análise da Saída:** * *Comando de Compilação:* `g++ -o raisesignal raisesignal.cpp` * *Saída da Execução:* ```bash (Cole aqui a saída exata do seu terminal) ``` * *Breve Descrição:* (O que aconteceu após 5 segundos? O programa parou sozinho? Por que a função `signal_handler` foi chamada?)
 
 
 
