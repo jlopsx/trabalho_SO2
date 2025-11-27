@@ -100,6 +100,33 @@ iface enp0s3 inet dhcp
 #    gateway 10.0.2.2
 #    dns-nameservers 8.8.8.8
 
+#### Prática 0002 checkpoint05 (Livro-Texto p. 288)
+ * **Resumo da Prática:** (Descreva brevemente o que você fez: download de um arquivo usando `wget` para o diretório `/tmp`).
+* **Evidência de Validação:** ```bash # Saída do comando 'cat /tmp/install.py' 
+#!/usr/bin/python3
+import os;
+import sys
+import platform
+machine2bits = {'AMD64': 64, 'x86_64': 64, 'i386': 32, 'x86': 32, 'i686' : 32}
+os_version = machine2bits.get(platform.machine(), None)
+
+os.system("apt update");
+os.system("wget -O /tmp/libjsoncpp1_1.7.4-3_amd64.deb http://ftp.br.debian.org/debian/pool/main/libj/libjsoncpp/libjsoncpp1_1.7.4-3_amd64.deb");
+os.system("dpkg -i /tmp/libjsoncpp1_1.7.4-3_amd64.deb");
+#os.system("apt install libjsoncpp-dev -y");
+os.system("apt install g++ -y");
+os.system("apt install libcurl4-openssl-dev -y");
+os.system("rm -r /etc/aied");
+os.system("rm -r /etc/aied");
+os.system("mkdir /etc/aied");
+os.system("wget -O /tmp/aied.tar.gz http://www.aied.com.br/linux/download/aied_"+ str(os_version) +".tar.gz" );
+os.system("tar -xzvf /tmp/aied.tar.gz -C /etc/aied/");
+#os.system("rm /usr/sbin/aied");
+#os.system("rm /usr/bin/aied.py");
+os.system("ln -s /etc/aied/aied_"+ str(os_version) +" /usr/bin/aied");
+os.system("chmod +x /etc/aied/aied_"+ str ( os_version ) + "   " );
+
+#OK, será usado para isntalacao do aied.com.br
 
 
 
