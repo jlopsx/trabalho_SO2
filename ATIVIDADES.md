@@ -544,7 +544,54 @@ Estou em loop imune... (66)
 ^\Quit
  ``` * *Breve Descrição:* O programa ignora o sinal de parada, somente matando o processo com o comando Ctrl+\
 
-#### `raisesignal.cpp` (Livro-Texto p. 204-205) * **Objetivo do Código:** Demonstrar como um processo pode enviar um sinal *para si mesmo* usando a função `raise()`. O programa irá rodar por 5 segundos e então se autoenviar um SIGINT. * **Código-Fonte:** ```cpp // (p. 204-205) #include <iostream> #include <csignal> #include <unistd.h> using namespace std; void signal_handler(int signum) { cout << "Auto-sinal recebido: (" << signum << ")." << endl; exit(signum); } int main () { int i = 0; signal(SIGINT, signal_handler); // (p. 205, linha 14) while (++i) { cout << "Dentro do laço de repetição infinito." << endl; if( i == 5) { raise(SIGINT); // (p. 205, linha 19) } sleep(1); } return 0; } ``` * **Análise da Saída:** * *Comando de Compilação:* `g++ -o raisesignal raisesignal.cpp` * *Saída da Execução:* ```bash (Cole aqui a saída exata do seu terminal) ``` * *Breve Descrição:* (O que aconteceu após 5 segundos? O programa parou sozinho? Por que a função `signal_handler` foi chamada?)
+#### `raisesignal.cpp` (Livro-Texto p. 204-205)
+* **Objetivo do Código:** Demonstrar como um processo pode enviar um sinal *para si mesmo* usando a função `raise()`.
+O programa irá rodar por 5 segundos e então se autoenviar um SIGINT.
+* **Código-Fonte:** ```cpp // (p. 204-205)
+#include <iostream>
+#include <csignal>
+#include <unistd.h>
+using namespace std;
+void signal_handler(int signum)
+{ cout << "Auto-sinal recebido: (" << signum << ")." << endl;
+exit(signum); }
+int main () { int i = 0;
+signal(SIGINT, signal_handler); // (p. 205, linha 14)
+while (++i) { cout << "Dentro do laço de repetição infinito." << endl;
+if( i == 5) { raise(SIGINT); // (p. 205, linha 19)
+}
+sleep(1); }
+return 0; } ``` * **Análise da Saída:** * *Comando de Compilação:* `g++ -o raisesignal raisesignal.cpp` * *Saída da Execução:* ```bash Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Auto-sinal recebido: (2).
+ ``` * *Breve Descrição:* O programa se interrompeu, pois após cinco segundos, o SIGINT é chamado.
+
+#### `killsignal.cpp` (Livro-Texto p. 205)
+* **Objetivo do Código:** Demonstrar como um processo pode enviar um sinal para si mesmo usando `kill()`. É similar ao `raise()`, mas requer que o processo saiba o seu próprio PID. * **Código-Fonte:** ```cpp // (p. 205)
+#include <iostream>
+#include <csignal>
+#include <unistd.h>
+using namespace std;
+void signal_handler(int signum)
+{ cout << "Processo será interrompido pelo sinal: (" << signum << ")." << endl;
+exit(signum); }
+int main () { int pid, i = 0; pid = getpid(); // (p. 205, linha 19) // (Nota: O livro usa SIGUSR1, vamos capturar SIGUSR1)
+signal(SIGUSR1, signal_handler);
+while (++i) { cout << "Dentro do laço de repetição infinito." << endl;
+if( i == 5) { kill(pid, SIGUSR1); // (p. 205, linha 22)
+} sleep(1); } return 0; } ```
+* **Análise da Saída:** * *Comando de Compilação:* `g++ -o killsignal killsignal.cpp` * *Saída da Execução:* ```bash Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Dentro do laço de repetição infinito.
+Processo será interrompido pelo sinal: (10).
+ ``` * *Breve Descrição:* O programa se auto-encerrou, com um sinal 10.
+
+
 
 
 
