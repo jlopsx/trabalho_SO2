@@ -40,6 +40,73 @@ tmpfs           5.0M     0  5.0M   0% /run/lock
 tmpfs            97M     0   97M   0% /run/user/1000
 /dev/sr0        364K  364K     0 100% /home/userlinux/cdrom
  # Saída do comando 'cat /home/usuario/cdrom/arquivo.txt aiedonline'
+#### Prática prc0001 01 (Livro-Texto p. 233)
+* **Resumo da Prática:** (Descreva brevemente o que você fez: execução dos comandos `locale-gen`, `script`, a listagem de processos com `ps` e a filtragem por `python`).
+* **Evidência de Validação:** ```bash # Saída do comando 'cat /home/usuario/typescript' userlin+     612  0.0  0.2   6336  2088 pts/1    S+   23:44   0:00 grep python
+### Capítulo 9: Práticas de Redes #### Prática 0002 checkpoint03 (Livro-Texto p. 286)
+* **Resumo da Prática:** (Descreva brevemente o que você fez: configuração de IP estático editando o arquivo `/etc/network/interfaces` e reiniciando a máquina).
+* **Evidência de Validação:** ```bash # Saída do comando 'ip address show enp0s3' 
+2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:ae:3d:56 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.2.3/24 brd 10.0.2.255 scope global enp0s3
+       valid_lft forever preferred_lft forever
+    inet6 fd00::a00:27ff:feae:3d56/64 scope global dynamic mngtmpaddr
+       valid_lft 86242sec preferred_lft 14242sec
+    inet6 fe80::a00:27ff:feae:3d56/64 scope link
+       valid_lft forever preferred_lft forever
+ # Saída do comando 'ip route' default via 10.0.2.2 dev enp0s3 onlink
+10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.3
+192.168.0.0/24 dev enp0s8 proto kernel scope link src 192.168.0.20
+ # Saída do comando 'cat /etc/network/interfaces' # The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+#allow-hotplug enp0s3
+#iface enp0s3 inet dhcp
+auto enp0s3
+iface enp0s3 inet static
+    address 10.0.2.3
+    netmask 255.255.255.0
+    gateway 10.0.2.2
+    dns-nameservers 8.8.8.8
+
+
+#### Prática 0002 checkpoint04 (Livro-Texto p. 287) * **Resumo da Prática:** (Descreva brevemente o que você fez: configuração da rede para DHCP no arquivo e, em seguida, configuração de IP estático via comandos `ip address` e `ip route`). * **Evidência de Validação:** ```bash # Saída do comando 'ip address show enp0s3' 2: enp0s3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP group default qlen 1000
+    link/ether 08:00:27:ae:3d:56 brd ff:ff:ff:ff:ff:ff
+    inet 10.0.2.15/24 brd 10.0.2.255 scope global dynamic enp0s3
+       valid_lft 85945sec preferred_lft 85945sec
+    inet 10.0.2.3/24 scope global secondary enp0s3
+       valid_lft forever preferred_lft forever
+    inet6 fd00::a00:27ff:feae:3d56/64 scope global dynamic mngtmpaddr
+       valid_lft 85946sec preferred_lft 13946sec
+    inet6 fe80::a00:27ff:feae:3d56/64 scope link
+       valid_lft forever preferred_lft forever
+
+# Saída do comando 'ip route' default via 10.0.2.2 dev enp0s3
+10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15
+192.168.0.0/24 dev enp0s8 proto kernel scope link src 192.168.0.20
+ # Saída do comando 'cat /etc/network/interfaces' # The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+allow-hotplug enp0s3
+iface enp0s3 inet dhcp
+#auto enp0s3
+#iface enp0s3 inet static
+#    address 10.0.2.3
+#    netmask 255.255.255.0
+#    gateway 10.0.2.2
+#    dns-nameservers 8.8.8.8
+
+
+
+
+
+
+
+
 
 
 
