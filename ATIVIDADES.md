@@ -11,9 +11,7 @@ sala, conforme solicitado no final de cada capítulo do livro-texto.
 texto dos comandos de validação solicitados. **Não use imagens (printscreens)**.
 ### Capítulo 6: Práticas de Discos e Montagem
 #### Prática 8b65b431 01 (Livro-Texto p. 171)
-* **Resumo da Prática:** (Descreva brevemente o que você fez: adição do disco,
-particionamento com `fdisk`, formatação com `mkfs.ext4` e configuração da montagem
-automática no `/etc/fstab` para o diretório `/backup`).
+* **Resumo da Prática:** comando fdisk e mount para realização da atividade
 * **Evidência de Validação:**
 ```bash
 # Saída do comando 'cat /etc/fstab'
@@ -43,8 +41,7 @@ tmpfs           5.0M     0  5.0M   0% /run/lock
 tmpfs            97M     0   97M   0% /run/user/1000
 ```
 #### Prática 8b65b431 02 (Livro-Texto p. 172)
-* **Resumo da Prática:** (Descreva brevemente o que você fez: criação do diretório `cdrom` e
-montagem manual do dispositivo `/dev/sr0` nele).
+* **Resumo da Prática:** utilização da função mkdir para criação do diretório
 * **Evidência de Validação:**
 ```bash
 # Saída do comando 'df -h'
@@ -62,8 +59,7 @@ aiedonline
 ```
 ### Capítulo 7: Práticas de Processos
 #### Prática prc0001 01 (Livro-Texto p. 233)
-* **Resumo da Prática:** (Descreva brevemente o que você fez: execução dos comandos
-`locale-gen`, `script`, a listagem de processos com `ps` e a filtragem por `python`).
+* **Resumo da Prática:** filtragem com grep 
 * **Evidência de Validação:**
 ```bash
 # Saída do comando 'cat /home/usuario/typescript' (após filtrar por 'python')
@@ -71,8 +67,7 @@ userlin+     612  0.0  0.2   6336  2088 pts/1    S+   23:44   0:00 grep python
 ```
 ### Capítulo 9: Práticas de Redes
 #### Prática 0002 checkpoint03 (Livro-Texto p. 286)
-* **Resumo da Prática:** (Descreva brevemente o que você fez: configuração de IP estático
-editando o arquivo `/etc/network/interfaces` e reiniciando a máquina).
+* **Resumo da Prática:** edição a partir do comando nano e comandos seguintes, como ip a e route
 * **Evidência de Validação:**
 ```bash
 # Saída do comando 'ip address show enp0s3'
@@ -136,8 +131,7 @@ iface enp0s3 inet dhcp
 #    dns-nameservers 8.8.8.8
 ```
 #### Prática 0002 checkpoint05 (Livro-Texto p. 288)
-* **Resumo da Prática:** (Descreva brevemente o que você fez: download de um arquivo
-usando `wget` para o diretório `/tmp`).
+* **Resumo da Prática:** wget para transferência de dados
 * **Evidência de Validação:**
 ```bash
 # Saída do comando 'cat /tmp/install.py'
